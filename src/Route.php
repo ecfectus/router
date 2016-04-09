@@ -36,7 +36,9 @@ class Route
      */
     protected $path;
 
-    protected $attributes = [];
+    protected $attributes = [
+        'middleware' => []
+    ];
 
     /**
      * Get the callable.
@@ -140,6 +142,10 @@ class Route
             $this->attributes[$attribute] = $arguments[0];
         }
 
-        return $this;
+        if(substr($method, 0, 3) === 'get'){
+            $attribute = Strings::toSnakeCase(lcfirst(substr($method, 3)));
+            return $this->attributes[$attribute];
+        }
+
     }
 }
