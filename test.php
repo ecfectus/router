@@ -2,29 +2,35 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-//$router = require('data.php');
 
+$router = \Ecfectus\Router\CachedRouter::create('data.php');
 
-$router = new \Ecfectus\Router\Router();
+if(!$router->isCached()){
+    $router->get('/test')->setDomain('http://{test}.leemason.co.uk');
 
-$router->get('/test')->setDomain('http://{test}.leemason.co.uk');
-
-$router->group([
-    'path' => '/testing'
-], function($r){
-   $r->any('/hello')->setDomain('http://leemason.co.uk');
-    $r->group([
-        'path' => '/123'
+    $router->group([
+        'path' => '/testing'
     ], function($r){
-        //$r->post('/{name}');
-        //$r->post('/{name}(?:/{group})?(?:/{test})?');
-        $r->get('/{name}/{group:alphanumdash?}/{test?}');
+        $r->any('/hello')->setDomain('http://leemason.co.uk');
+        $r->group([
+            'path' => '/123'
+        ], function($r){
+            //$r->post('/{name}');
+            //$r->post('/{name}(?:/{group})?(?:/{test})?');
+            $r->get('/{name}/{group:alphanumdash?}/{test?}');
+        });
     });
-});
 
+    try{
+        $router->compileRegex();
+
+        $router->export();
+    }catch( Exception $e){
+
+    }
+}
 
 try{
-    $router->compileRegex();
 
     print_r($router);
 
@@ -34,9 +40,7 @@ try{
     print_r($router->match('/testing/123/name'));
     print_r($router->match('/testing/123/name/group'));
     print_r($router->match('/testing/123/name/group/test'));
+
 }catch( Exception $e){
 
 }
-
-
-//file_put_contents('data.php', $router->export());

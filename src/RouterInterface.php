@@ -105,19 +105,4 @@ interface RouterInterface
      * @return void
      */
     public function addPatternMatcher(string $alias, string $regex) : RouterInterface;
-
-    /**
-     * Return the router to a regex ready state from cached routes.
-     *
-     * @param array $atts
-     * @return RouterInterface
-     */
-    public static function __set_state(array $atts = []) : RouterInterface;
-
-    /**
-     * Return a writable/executable string to repopulate the router.
-     *
-     * @return string
-     */
-    public function export() : string;
 }

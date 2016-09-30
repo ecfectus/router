@@ -55,15 +55,11 @@ class Router implements RouterInterface
      */
     protected $groupParams = [];
 
-    public static function __set_state(array $atts = []) : RouterInterface
-    {
-        return new self($atts);
-    }
-
     public function __construct(array $atts = [])
     {
         $this->routes = $atts['routes'] ?? [];
         $this->patternMatchers = $atts['patternMatchers'] ?? $this->patternMatchers;
+        $this->methodRoutes = $atts['methodRoutes'] ?? $this->methodRoutes;
     }
 
     private function addRoute(RouteInterface $route) : RouteInterface
@@ -72,11 +68,14 @@ class Router implements RouterInterface
             $route->mergeParams($this->groupParams);
         }
 
-        foreach($route->getMethods() as $method){
-            $this->methodRoutes[$method][] = $route;
-        }
-
         $this->routes[] = $route;
+
+        end($this->routes);
+        $key = key($this->routes);
+
+        foreach($route->getMethods() as $method){
+            $this->methodRoutes[$method][] = $key;
+        }
 
         return $route;
     }
@@ -187,7 +186,9 @@ class Router implements RouterInterface
     {
 
         // for performance loop only the same method routes for smaller sample.
-        foreach($this->methodRoutes[$method] as $route){
+        foreach($this->methodRoutes[$method] as $routeIndex){
+
+            $route = $this->routes[$routeIndex];
 
             if($route->matches($path)){
 
@@ -196,7 +197,7 @@ class Router implements RouterInterface
             }
         }
 
-        // if we get here its possibly a method not allowed route, slower but used much less often/
+        // if we get here its possibly a method not allowed route, slower but used much less often.
         foreach($this->routes as $route){
 
             if($route->matches($path)){
@@ -236,9 +237,4 @@ class Router implements RouterInterface
         return preg_replace(array_keys($this->patternMatchers), array_values($this->patternMatchers), $path);
     }
 
-    public function export() : string
-    {
-        $this->compileRegex();
-        return "<?php\nreturn " . var_export($this, true) . ';';
-    }
 }
