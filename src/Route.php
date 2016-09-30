@@ -260,7 +260,7 @@ class Route implements RouteInterface
      */
     private function mergeName(string $name = '') : RouteInterface
     {
-        $this->name = implode('.', [$name, $this->name]);
+        $this->name = trim(implode('.', [$name, $this->name]), '.');
         return $this;
     }
 

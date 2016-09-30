@@ -28,6 +28,15 @@ class Router implements RouterInterface
      */
     protected $routes = [];
 
+    protected $methodRoutes = [
+        'HEAD' => [],
+        'GET' => [],
+        'POST' => [],
+        'PUT' => [],
+        'PATCH' => [],
+        'DELETE' => []
+    ];
+
     /**
      * @var array
      */
@@ -61,6 +70,10 @@ class Router implements RouterInterface
     {
         if(!empty($this->groupParams)){
             $route->mergeParams($this->groupParams);
+        }
+
+        foreach($route->getMethods() as $method){
+            $this->methodRoutes[$method][] = $route;
         }
 
         $this->routes[] = $route;
@@ -173,6 +186,17 @@ class Router implements RouterInterface
     public function match(string $path, string $method = 'GET') : RouteInterface
     {
 
+        // for performance loop only the same method routes for smaller sample.
+        foreach($this->methodRoutes[$method] as $route){
+
+            if($route->matches($path)){
+
+                return $route;
+
+            }
+        }
+
+        // if we get here its possibly a method not allowed route, slower but used much less often/
         foreach($this->routes as $route){
 
             if($route->matches($path)){
@@ -181,9 +205,10 @@ class Router implements RouterInterface
                     throw new MethodNotallowedException('A Route Matched the provided path: [' . $path . '], but it is not allowed for the supplied method [' . $method . '].');
                 }
 
-                return $route;
             }
         }
+
+        //finally throw a 404
         throw new NotFoundException('No Route Matches the provided path: [' . $path . '].');
     }
 
@@ -211,7 +236,9 @@ class Router implements RouterInterface
         return preg_replace(array_keys($this->patternMatchers), array_values($this->patternMatchers), $path);
     }
 
-    public function export(){
+    public function export() : string
+    {
+        $this->compileRegex();
         return "<?php\nreturn " . var_export($this, true) . ';';
     }
 }
