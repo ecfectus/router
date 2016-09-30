@@ -8,49 +8,60 @@
 
 namespace Ecfectus\Router;
 
-use FastRoute\Dispatcher\GroupCountBased;
-use FastRoute\RouteCollector;
-use Psr\Http\Message\RequestInterface;
-
-class Router extends RouteCollector implements RouteCollectionInterface
+class Router implements RouterInterface
 {
 
-    use RouteCollectionMapTrait;
+    /**
+     * @var array
+     */
+    protected $methods = [
+        'HEAD',
+        'GET',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE'
+    ];
 
     /**
-     * @var []
+     * @var array
      */
     protected $routes = [];
-
-    /**
-     * @var []
-     */
-    protected $namedRoutes = [];
-
-    /**
-     * @var []
-     */
-    protected $groups = [];
 
     /**
      * @var array
      */
     protected $patternMatchers = [
-        '/{(.+?):number}/'        => '{$1:[0-9]+}',
-        '/{(.+?):word}/'          => '{$1:[a-zA-Z]+}',
-        '/{(.+?):alphanum_dash}/' => '{$1:[a-zA-Z0-9-_]+}',
-        '/{(.+?):slug}/'          => '{$1:[a-z0-9-]+}',
-        '/{(.+?):uuid}/'          => '{$1:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}+}'
+        '/\/\{([a-zA-Z:]+)\?\}/' => '(?:/{$1})?',
+        '/{([a-zA-Z]+)}/'          => '(?<$1>[^/]+)',
+        '/{(.+?):number}/'        => '(?<$1>[0-9]+)',
+        '/{(.+?):word}/'          => '(?<$1>[a-zA-Z]+)',
+        '/{(.+?):alphanumdash}/' => '(?<$1>[a-zA-Z0-9-_]+)',
+        '/{(.+?):slug}/'          => '(?<$1>[a-z0-9-]+)',
+        '/{(.+?):uuid}/'          => '(?<$1>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}+)'
     ];
 
     /**
-     * {@inheritdoc}
+     * @var array
      */
-    public function map($method, $path, $handler)
-    {
-        $path = sprintf('/%s', ltrim($path, '/'));
+    protected $groupParams = [];
 
-        $route = (new Route)->setMethods((array) $method)->setPath($path)->setCallable($handler);
+    public static function __set_state(array $atts = []) : RouterInterface
+    {
+        return new self($atts);
+    }
+
+    public function __construct(array $atts = [])
+    {
+        $this->routes = $atts['routes'] ?? [];
+        $this->patternMatchers = $atts['patternMatchers'] ?? $this->patternMatchers;
+    }
+
+    private function addRoute(RouteInterface $route) : RouteInterface
+    {
+        if(!empty($this->groupParams)){
+            $route->mergeParams($this->groupParams);
+        }
 
         $this->routes[] = $route;
 
@@ -58,148 +69,149 @@ class Router extends RouteCollector implements RouteCollectionInterface
     }
 
     /**
-     * Add a group of routes to the collection.
-     *
-     * @param string   $prefix
-     * @param callable $group
+     * @inheritDoc
      */
-    public function group($prefix, callable $group)
+    public function any(string $path) : RouteInterface
     {
-        $group = new RouteGroup($prefix, $group, $this);
-
-        $this->groups[] = $group;
-
-        return $group;
-    }
-
-    public function matchRequest(RequestInterface $request){
-        return $this->match($request->getMethod(), $request->getUri()->getScheme(), $request->getUri()->getHost(), $request->getUri()->getPath());
+        $route = (new Route())->setPath($path)->setMethods($this->methods);
+        return $this->addRoute($route);
     }
 
     /**
-     * Dispatch the route based on the request.
+     * @inheritDoc
      */
-    public function match($method = 'GET', $scheme = '', $host, $uri)
+    public function head(string $path) : RouteInterface
     {
-        $dispatcher = $this->getDispatcher($method, $scheme, $host, $uri);
-
-        return $dispatcher->dispatch($method, $uri);
+        $route = (new Route())->setPath($path)->setMethods(['HEAD']);
+        return $this->addRoute($route);
     }
 
     /**
-     * Return a fully configured dispatcher.
+     * @inheritDoc
      */
-    public function getDispatcher($method = 'GET', $scheme = '', $host, $uri)
+    public function get(string $path) : RouteInterface
     {
-
-        $this->prepRoutes($method, $scheme, $host, $uri);
-
-        return (new GroupCountBased($this->getData()));
+        $route = (new Route())->setPath($path)->setMethods(['HEAD', 'GET']);
+        return $this->addRoute($route);
     }
 
     /**
-     * Prepare all routes, build name index and filter out none matching
-     * routes before being passed off to the parser.
-     *
-     *
-     * @return void
+     * @inheritDoc
      */
-    protected function prepRoutes($method = 'GET', $scheme = '', $host, $uri)
+    public function post(string $path) : RouteInterface
     {
-        $this->buildNameIndex();
+        $route = (new Route())->setPath($path)->setMethods(['POST']);
+        return $this->addRoute($route);
+    }
 
-        $routes = array_merge(array_values($this->routes), array_values($this->namedRoutes));
+    /**
+     * @inheritDoc
+     */
+    public function put(string $path) : RouteInterface
+    {
+        $route = (new Route())->setPath($path)->setMethods(['PUT']);
+        return $this->addRoute($route);
+    }
 
-        foreach ($routes as $key => $route) {
-            // check for scheme condition
-            if (! is_null($route->getScheme()) && $route->getScheme() !== $scheme) {
-                continue;
+    /**
+     * @inheritDoc
+     */
+    public function patch(string $path) : RouteInterface
+    {
+        $route = (new Route())->setPath($path)->setMethods(['PATCH']);
+        return $this->addRoute($route);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(string $path) : RouteInterface
+    {
+        $route = (new Route())->setPath($path)->setMethods(['DELETE']);
+        return $this->addRoute($route);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function group(array $params, callable $callback) : RouterInterface
+    {
+        $this->addGroupParams($params);
+        $callback($this);
+        $this->popGroupParams();
+        return $this;
+    }
+
+    private function addGroupParams(array $params)
+    {
+        $this->groupParams[] = $params;
+    }
+
+    private function popGroupParams()
+    {
+        array_pop($this->groupParams);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function compileRegex()
+    {
+
+        foreach($this->routes as $route) {
+
+            //add pattern matcher regex
+            $route->setDomainRegex($this->parseRoutePath($route->getDomain()));
+            $route->setRegex($this->parseRoutePath($route->getPath()));
+
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function match(string $path, string $method = 'GET') : RouteInterface
+    {
+
+        foreach($this->routes as $route){
+
+            if($route->matches($path)){
+
+                if(!$route->isAllowedMethod($method)){
+                    throw new MethodNotallowedException('A Route Matched the provided path: [' . $path . '], but it is not allowed for the supplied method [' . $method . '].');
+                }
+
+                return $route;
             }
-
-            // check for domain condition
-            if (! is_null($route->getHost()) && $route->getHost() !== $host) {
-                continue;
-            }
-
-            $this->addRoute(
-                $route->getMethods(),
-                $this->parseRoutePath($route->getPath()),
-                $route
-            );
         }
+        throw new NotFoundException('No Route Matches the provided path: [' . $path . '].');
     }
 
     /**
-     * Build an index of named routes.
-     *
-     * @return void
+     * @inheritDoc
      */
-    protected function buildNameIndex()
-    {
-        $this->processGroups();
-
-        foreach ($this->routes as $key => $route) {
-            if (! is_null($route->getName())) {
-                unset($this->routes[$key]);
-                $this->namedRoutes[$route->getName()] = $route;
-            }
-        }
-    }
-
-    /**
-     * Process all groups.
-     *
-     * @return void
-     */
-    protected function processGroups()
-    {
-        foreach ($this->groups as $key => $group) {
-            unset($this->groups[$key]);
-            $group();
-        }
-    }
-
-    /**
-     * Get named route.
-     *
-     * @param string $name
-     */
-    public function getNamedRoute($name)
-    {
-        $this->buildNameIndex();
-
-        if (array_key_exists($name, $this->namedRoutes)) {
-            return $this->namedRoutes[$name];
-        }
-
-        throw new \InvalidArgumentException(sprintf('No route of the name (%s) exists', $name));
-    }
-
-    /**
-     * Add a convenient pattern matcher to the internal array for use with all routes.
-     *
-     * @param string $alias
-     * @param string $regex
-     *
-     * @return void
-     */
-    public function addPatternMatcher($alias, $regex)
+    public function addPatternMatcher(string $alias, string $regex) : RouterInterface
     {
         $pattern = '/{(.+?):' . $alias . '}/';
         $regex   = '{$1:' . $regex . '}';
 
         $this->patternMatchers[$pattern] = $regex;
+
+        return $this;
     }
 
     /**
      * Convenience method to convert pre-defined key words in to regex strings.
      *
      * @param string $path
-     *
      * @return string
      */
-    protected function parseRoutePath($path)
+    protected function parseRoutePath(string $path) : string
     {
         return preg_replace(array_keys($this->patternMatchers), array_values($this->patternMatchers), $path);
+    }
+
+    public function export(){
+        return "<?php\nreturn " . var_export($this, true) . ';';
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "ecfectus/router",
-    "description": "PHP Router implementation on top of fast route",
+    "description": "PHP 7 Router implementation on top of fast route",
     "homepage": "https://github.com/ecfectus/router",
     "license": "MIT",
     "authors": [
@@ -11,14 +11,10 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=5.6.0",
-        "nikic/fast-route": "dev-master",
-        "anahkiasen/underscore-php": "dev-master",
-        "psr/http-message": "~1.0@dev"
+        "php": ">=7.0.0"
     },
     "require-dev": {
-        "phpunit/phpunit" : "4.*",
-        "fabpot/php-cs-fixer": "~1.10"
+        "phpunit/phpunit" : "4.*"
     },
     "autoload": {
         "psr-4": {

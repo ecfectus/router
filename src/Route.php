@@ -2,150 +2,321 @@
 /**
  * Created by PhpStorm.
  * User: leemason
- * Date: 08/04/16
- * Time: 17:02
+ * Date: 30/09/16
+ * Time: 16:09
  */
 
 namespace Ecfectus\Router;
 
 
-use Underscore\Types\Strings;
-
-class Route
+class Route implements RouteInterface
 {
-
-    use RouteConditionTrait;
-
     /**
-     * @var string|callable
+     * @var string
      */
-    protected $callable;
-
-    /**
-     * @var \Ecfectus\Router\RouteGroup
-     */
-    protected $group;
-
-    /**
-     * @var string[]
-     */
-    protected $methods = [];
+    protected $path = '';
 
     /**
      * @var string
      */
-    protected $path;
-
-    protected $attributes = [
-        'middleware' => []
-    ];
+    protected $name = '';
 
     /**
-     * Get the callable.
-     *
-     * @return string|callable
+     * @var
      */
-    public function getCallable()
+    protected $regex = '';
+
+    /**
+     * @var array
+     */
+    protected $methods = [];
+
+    /**
+     * @var mixed
+     */
+    protected $handler;
+
+    /**
+     * @var string
+     */
+    protected $domain = '';
+
+    /**
+     * @var string
+     */
+    protected $domainRegex = '(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})?';
+
+    /**
+     * @var array
+     */
+    protected $values = [];
+
+    public static function __set_state(array $atts = []) : RouteInterface
     {
-        return $this->callable;
+        return new self($atts);
+    }
+
+    public function __construct(array $atts = [])
+    {
+        foreach($atts as $key => $value){
+            $this->{$key} = $value;
+        }
     }
 
     /**
-     * Set the callable.
-     *
-     * @param string|callable $callable
-     *
-     * @return \League\Route\Route
+     * @inheritDoc
      */
-    public function setCallable($callable)
+    public function setPath(string $path) : RouteInterface
     {
-        $this->callable = $callable;
-
+        $this->path = $this->slashPath($path);
         return $this;
     }
 
     /**
-     * Get the parent group.
-     *
-     * @return \League\Route\RouteGroup
+     * @inheritDoc
      */
-    public function getParentGroup()
-    {
-        return $this->group;
-    }
-
-    /**
-     * Set the parent group.
-     *
-     * @param \League\Route\RouteGroup $group
-     *
-     * @return \League\Route\Route
-     */
-    public function setParentGroup(RouteGroup $group)
-    {
-        $this->group = $group;
-
-        return $this;
-    }
-
-    /**
-     * Get the path.
-     *
-     * @return string
-     */
-    public function getPath()
+    public function getPath() : string
     {
         return $this->path;
     }
 
     /**
-     * Set the path.
-     *
-     * @param string $path
-     *
-     * @return \League\Route\Route
+     * @inheritDoc
      */
-    public function setPath($path)
+    public function setName(string $name) : RouteInterface
     {
-        $this->path = $path;
+        $this->name = $name;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getName() : string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setRegex(string $path) : RouteInterface
+    {
+        $this->regex = $this->slashPath($path);
+
+        $this->parseValues();
 
         return $this;
     }
 
     /**
-     * Get the methods.
-     *
-     * @return string[]
+     * @inheritDoc
      */
-    public function getMethods()
+    public function getRegex() : string
+    {
+        return $this->regex;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setMethods(array $methods) : RouteInterface
+    {
+        $this->methods = $methods;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getMethods() : array
     {
         return $this->methods;
     }
 
     /**
-     * Get the methods.
-     *
-     * @param string[] $methods
-     *
-     * @return \League\Route\Route
+     * @inheritDoc
      */
-    public function setMethods(array $methods)
+    public function setHandler($handler) : RouteInterface
     {
-        $this->methods = $methods;
+        $this->handler = $handler;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getHandler()
+    {
+        return $this->handler;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDomain(string $domain) : RouteInterface
+    {
+        $this->domain = rtrim($domain, '/');
+
+        $this->parseValues();
 
         return $this;
     }
 
-    public function __call($method, $arguments){
-        if(substr($method, 0, 3) === 'set'){
-            $attribute = Strings::toSnakeCase(lcfirst(substr($method, 3)));
-            $this->attributes[$attribute] = $arguments[0];
-        }
-
-        if(substr($method, 0, 3) === 'get'){
-            $attribute = Strings::toSnakeCase(lcfirst(substr($method, 3)));
-            return $this->attributes[$attribute];
-        }
-
+    /**
+     * @inheritDoc
+     */
+    public function getDomain(): string
+    {
+        return $this->domain;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDomainRegex(string $regex = '') : RouteInterface
+    {
+        if($regex == ''){
+            $regex = '(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})?';
+        }
+
+        $this->domainRegex = $regex;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDomainRegex(): string
+    {
+        return $this->domainRegex;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setValues(array $values) : RouteInterface
+    {
+        $this->values = $values;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getValues(): array
+    {
+        return $this->values;
+    }
+
+    private function parseValues()
+    {
+
+        $this->setValues([]);
+
+        $matches = [];
+
+        preg_match_all("/\<(.+?)\>/", $this->getDomainRegex() . '/' . $this->getRegex(), $matches);
+
+        if(!empty($matches[1])){
+            foreach($matches[1] as $value){
+                $this->values[$value] = '';
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function mergeParams(array $params) : RouteInterface
+    {
+        $params = array_reverse($params);
+        foreach($params as $p){
+            $this->mergePath($p['path'] ?? '');
+            $this->mergeName($p['name'] ?? '');
+            $this->mergeDomain($p['domain'] ?? '');
+        }
+        return $this;
+    }
+
+    /**
+     * Merge group path with route path.
+     *
+     * @param string $path
+     * @return RouteInterface
+     */
+    private function mergePath(string $path = '') : RouteInterface
+    {
+        $this->path = $this->slashPath(implode('/', [$path, $this->path]));
+        return $this;
+    }
+
+    /**
+     * Merge group name with route name, glued by dots.
+     *
+     * @param string $name
+     * @return RouteInterface
+     */
+    private function mergeName(string $name = '') : RouteInterface
+    {
+        $this->name = implode('.', [$name, $this->name]);
+        return $this;
+    }
+
+    /**
+     * If the group has a domain AND the route doesnt, add that as the domain.
+     *
+     * @param string $domain
+     * @return RouteInterface
+     */
+    private function mergeDomain(string $domain = '') : RouteInterface
+    {
+        if($this->domain == '' && $domain != ''){
+            $this->setDomain($domain);
+        }
+        return $this;
+    }
+
+    /**
+     * Performs a string manipulation to ensure there is no leading or trailing slash.
+     *
+     * @param string $path
+     * @return string
+     */
+    private function slashPath(string $path) : string
+    {
+        return trim($path, '/');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function matches(string $path): bool
+    {
+        $matches = [];
+
+        $passes = preg_match('~^' . $this->getDomainRegex() . '/' .$this->getRegex() . '~', $path, $matches);
+
+        foreach($matches as $k => $v) {
+            if(!is_int($k)) {
+                $this->values[$k] = $matches[$k];
+            }
+        }
+
+        if($passes === 1 && $matches[0] == $path){
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isAllowedMethod(string $method) : bool
+    {
+        return in_array($method, $this->getMethods());
+    }
+
 }
