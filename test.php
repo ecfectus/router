@@ -35,12 +35,12 @@ try{
     print_r($router);
 
 
-    print_r($router->match('hello.leemason.co.uk/test'));
+    print_r($router->match('hello.leemason.co.uk/test', 'OPTIONS'));
     print_r($router->match('leemason.co.uk/testing/hello'));
     print_r($router->match('domain.com/testing/123/name'));
     print_r($router->match('/testing/123/name/group'));
     print_r($router->match('/testing/123/name/group/test'));
 
 }catch( Exception $e){
-
+    print_r($e);
 }

@@ -9,8 +9,25 @@
 namespace Ecfectus\Router;
 
 
+/**
+ * Class Route
+ * @package Ecfectus\Router
+ */
 class Route implements RouteInterface
 {
+    /**
+     * @var array
+     */
+    protected $allowedMethods = [
+        'OPTIONS',
+        'HEAD',
+        'GET',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE'
+    ];
+
     /**
      * @var string
      */
@@ -51,11 +68,17 @@ class Route implements RouteInterface
      */
     protected $values = [];
 
+    /**
+     * @inheritDoc
+     */
     public static function __set_state(array $atts = []) : RouteInterface
     {
         return new self($atts);
     }
 
+    /**
+     * @param array $atts
+     */
     public function __construct(array $atts = [])
     {
         foreach($atts as $key => $value){
@@ -122,6 +145,11 @@ class Route implements RouteInterface
      */
     public function setMethods(array $methods) : RouteInterface
     {
+        foreach($methods as $method){
+            if(!in_array($method, $this->allowedMethods)){
+                throw new \InvalidArgumentException('The method should be one of: [' . implode(',', $this->allowedMethods) . ']');
+            }
+        }
         $this->methods = $methods;
         return $this;
     }
@@ -212,6 +240,9 @@ class Route implements RouteInterface
         return $this->values;
     }
 
+    /**
+     * Set the routes values array to a keyed list of the arguments ready for population.
+     */
     private function parseValues()
     {
 
@@ -298,7 +329,7 @@ class Route implements RouteInterface
     {
         $matches = [];
 
-        $passes = preg_match('~^' . $this->getDomainRegex() . '/' .$this->getRegex() . '~', rtrim($path, '/'), $matches);
+        $passes = preg_match('~^' . $this->getDomainRegex() . '/' .$this->getRegex() . '$~', rtrim($path, '/'), $matches);
 
         foreach($matches as $k => $v) {
             if(!is_int($k)) {

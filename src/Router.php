@@ -8,6 +8,10 @@
 
 namespace Ecfectus\Router;
 
+/**
+ * Class Router
+ * @package Ecfectus\Router
+ */
 class Router implements RouterInterface
 {
 
@@ -15,6 +19,7 @@ class Router implements RouterInterface
      * @var array
      */
     protected $methods = [
+        'OPTIONS',
         'HEAD',
         'GET',
         'POST',
@@ -28,7 +33,11 @@ class Router implements RouterInterface
      */
     protected $routes = [];
 
+    /**
+     * @var array
+     */
     protected $methodRoutes = [
+        'OPTIONS' => [],
         'HEAD' => [],
         'GET' => [],
         'POST' => [],
@@ -55,6 +64,9 @@ class Router implements RouterInterface
      */
     protected $groupParams = [];
 
+    /**
+     * @param array $atts
+     */
     public function __construct(array $atts = [])
     {
         $this->routes = $atts['routes'] ?? [];
@@ -62,6 +74,26 @@ class Router implements RouterInterface
         $this->methodRoutes = $atts['methodRoutes'] ?? $this->methodRoutes;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getRoutes() : array
+    {
+        return $this->routes;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setRoutes(array $routes = []) : RouterInterface
+    {
+        $this->routes = $routes;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function addRoute(RouteInterface $route) : RouteInterface
     {
         if(!empty($this->groupParams)){
@@ -86,6 +118,15 @@ class Router implements RouterInterface
     public function any(string $path) : RouteInterface
     {
         $route = (new Route())->setPath($path)->setMethods($this->methods);
+        return $this->addRoute($route);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function options(string $path) : RouteInterface
+    {
+        $route = (new Route())->setPath($path)->setMethods(['OPTIONS']);
         return $this->addRoute($route);
     }
 
@@ -154,11 +195,20 @@ class Router implements RouterInterface
         return $this;
     }
 
+    /**
+     * Add group params to the stack.
+     *
+     * @param array $params
+     */
     private function addGroupParams(array $params)
     {
         $this->groupParams[] = $params;
     }
 
+    /**
+     * Remove the last group params from the stack.
+     *
+     */
     private function popGroupParams()
     {
         array_pop($this->groupParams);
@@ -182,31 +232,39 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
-    public function match(string $path, string $method = 'GET') : RouteInterface
+    public function match(string $path = '', string $method = 'GET') : RouteInterface
     {
 
+        $method = strtoupper($method);
+
+        if(!in_array($method, $this->methods)){
+            throw new \InvalidArgumentException('The method should be one of: [' . implode(',', $this->methods) . ']');
+        }
+
         // for performance loop only the same method routes for smaller sample.
-        foreach($this->methodRoutes[$method] as $routeIndex){
+        if(isset($this->methodRoutes[$method])){
+            foreach($this->methodRoutes[$method] as $routeIndex){
 
-            $route = $this->routes[$routeIndex];
+                $route = $this->routes[$routeIndex];
 
-            if($route->matches($path)){
+                if($route->matches($path)){
 
-                return $route;
+                    return $route;
 
+                }
             }
         }
 
         // if we get here its possibly a method not allowed route, slower but used much less often.
+        $allowedMethods = [];
         foreach($this->routes as $route){
-
             if($route->matches($path)){
-
-                if(!$route->isAllowedMethod($method)){
-                    throw new MethodNotallowedException('A Route Matched the provided path: [' . $path . '], but it is not allowed for the supplied method [' . $method . '].');
-                }
-
+                $allowedMethods = array_merge($allowedMethods, $route->getMethods());
             }
+        }
+
+        if(!empty($allowedMethods)){
+            throw new MethodNotAllowedException('A Route Matched the provided path: [' . $path . '], but it is not allowed for the supplied method [' . $method . '].', $allowedMethods);
         }
 
         //finally throw a 404
@@ -216,8 +274,12 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
-    public function addPatternMatcher(string $alias, string $regex) : RouterInterface
+    public function addPatternMatcher(string $alias = '', string $regex = '') : RouterInterface
     {
+        if($alias == '' || $regex == ''){
+            throw new \InvalidArgumentException('$alias and $regex should not be empty.');
+        }
+
         $pattern = '/{(.+?):' . $alias . '}/';
         $regex   = '{$1:' . $regex . '}';
 

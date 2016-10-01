@@ -9,6 +9,10 @@
 namespace Ecfectus\Router;
 
 
+/**
+ * Interface CachedRouterInterface
+ * @package Ecfectus\Router
+ */
 interface CachedRouterInterface extends RouterInterface
 {
     /**

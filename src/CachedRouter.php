@@ -9,6 +9,10 @@
 namespace Ecfectus\Router;
 
 
+/**
+ * Class CachedRouter
+ * @package Ecfectus\Router
+ */
 class CachedRouter extends Router implements RouterInterface, CachedRouterInterface
 {
 
@@ -17,11 +21,17 @@ class CachedRouter extends Router implements RouterInterface, CachedRouterInterf
      */
     protected $cachePath = '';
 
+    /**
+     * @inheritDoc
+     */
     public static function __set_state(array $atts = []) : RouterInterface
     {
         return new self($atts);
     }
 
+    /**
+     * @param array $atts
+     */
     public function __construct(array $atts = [])
     {
         parent::__construct($atts);
@@ -39,6 +49,9 @@ class CachedRouter extends Router implements RouterInterface, CachedRouterInterf
         return $this;
     }
 
+    /**
+     * @inheritDoc
+     */
     public static function create(string $path = '') : CachedRouterInterface
     {
         if(is_file($path)){

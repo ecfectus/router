@@ -9,8 +9,35 @@
 namespace Ecfectus\Router;
 
 
+/**
+ * Interface RouterInterface
+ * @package Ecfectus\Router
+ */
 interface RouterInterface
 {
+
+    /**
+     * Get router Routes
+     *
+     * @return array
+     */
+    public function getRoutes() : array;
+
+    /**
+     * Set Router Routes.
+     *
+     * @param array $routes
+     * @return RouterInterface
+     */
+    public function setRoutes(array $routes = []) : RouterInterface;
+
+    /**
+     * Add a created route to the stack.
+     *
+     * @param RouteInterface $router
+     * @return RouteInterface
+     */
+    public function addRoute(RouteInterface $router) : RouteInterface;
 
     /**
      * Adds a route to the collection for all methods at the specified path.
@@ -20,6 +47,15 @@ interface RouterInterface
      * @return Route
      */
     public function any(string $path) : RouteInterface;
+
+    /**
+     * Adds a route to the collection for the OPTIONS method at the specified path.
+     *
+     * @param string $path
+     * @param string $path
+     * @return Route
+     */
+    public function options(string $path) : RouteInterface;
 
     /**
      * Adds a route to the collection for the HEAD method at the specified path.
@@ -92,9 +128,9 @@ interface RouterInterface
      *
      * @param string $path
      * @param string $method
-     * @return Route
+     * @return RouteInterface
      */
-    public function match(string $path, string $method = 'GET') : RouteInterface;
+    public function match(string $path = '', string $method = 'GET') : RouteInterface;
 
     /**
      * Add a convenient pattern matcher to the internal array for use with all routes.
@@ -104,5 +140,5 @@ interface RouterInterface
      *
      * @return void
      */
-    public function addPatternMatcher(string $alias, string $regex) : RouterInterface;
+    public function addPatternMatcher(string $alias = '', string $regex = '') : RouterInterface;
 }

@@ -1,5 +1,7 @@
 # Ecfectus Router
 
+[![Build Status](https://travis-ci.org/ecfectus/router.svg?branch=master)](https://travis-ci.org/ecfectus/router)
+
 PHP 7 Router implementation.
 
 The ecfectus router is a lean, fast and cachable PHP router with no dependencies.
