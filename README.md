@@ -8,7 +8,7 @@ The router has been made lean by not needing any knowledge of a request, it is q
 
 ## Usage
 
-```
+```php
 $router = new \Ecfectus\Router\Router();
 
 /**
