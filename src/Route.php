@@ -182,6 +182,8 @@ class Route implements RouteInterface
 
         $this->domainRegex = $regex;
 
+        $this->parseValues();
+
         return $this;
     }
 
@@ -296,7 +298,7 @@ class Route implements RouteInterface
     {
         $matches = [];
 
-        $passes = preg_match('~^' . $this->getDomainRegex() . '/' .$this->getRegex() . '~', $path, $matches);
+        $passes = preg_match('~^' . $this->getDomainRegex() . '/' .$this->getRegex() . '~', rtrim($path, '/'), $matches);
 
         foreach($matches as $k => $v) {
             if(!is_int($k)) {

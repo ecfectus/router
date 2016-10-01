@@ -41,7 +41,7 @@ class Router implements RouterInterface
      * @var array
      */
     protected $patternMatchers = [
-        '/\/\{([a-zA-Z:]+)\?\}/' => '(?:/{$1})?',
+        '/\/\{([a-zA-Z:]+)\?\}/' => '(?:/{$1})?',//run this first to replace optional params with a regex to suit
         '/{([a-zA-Z]+)}/'          => '(?<$1>[^/]+)',
         '/{(.+?):number}/'        => '(?<$1>[0-9]+)',
         '/{(.+?):word}/'          => '(?<$1>[a-zA-Z]+)',
