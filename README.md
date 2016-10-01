@@ -127,3 +127,38 @@ try{
 
 }
 ```
+
+## Cached Router
+
+By using the cached router you can export the compiled router and restore the instance from a file, bypassing the compile process and increasing performance.
+
+```php
+$router = \Ecfectus\Router\CachedRouter::create('routes.php');
+
+if(!$router->isCached()){
+
+    //add routes here
+
+    try{
+        //compile and export the router to the file.
+        $router->compileRegex();
+        $router->export();
+    }catch( Exception $e){
+
+    }
+}
+
+try{
+
+    $route = $router->match('hello.domain.com/url', 'GET'); // $path, $method = 'GET|POST|PUT|PATCH|DELETE'
+
+    $values = $route->getValues(); // ['subdomain' => 'hello']
+
+}catch( \Ecfectus\Router\NotFoundException $e){
+    //no route matched
+}catch( \Ecfectus\Router\MethodNotAllowedException $e){
+    //route matched but method not allowed
+}catch( \Exception $e){
+
+}
+```
