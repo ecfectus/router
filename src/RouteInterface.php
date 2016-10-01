@@ -130,4 +130,12 @@ interface RouteInterface
      */
     public static function __set_state(array $atts = []) : RouteInterface;
 
+    /**
+     * Generates a url from the route definition.
+     *
+     * @param array $args
+     * @return string
+     */
+    public function url(array $args = []) : string;
+
 }

@@ -15,7 +15,8 @@ use PHPUnit\Framework\TestCase;
 class RouteTest extends TestCase
 {
 
-    public function testCanSetPath(){
+    public function testCanSetPath()
+    {
         $route = new Route();
 
         $this->assertEquals('', $route->getPath());
@@ -33,7 +34,8 @@ class RouteTest extends TestCase
         $this->assertEquals('path', $route->getPath());
     }
 
-    public function testCanSetRegex(){
+    public function testCanSetRegex()
+    {
         $route = new Route();
 
         $this->assertEquals('', $route->getRegex());
@@ -51,7 +53,8 @@ class RouteTest extends TestCase
         $this->assertEquals('regex', $route->getRegex());
     }
 
-    public function testCanSetName(){
+    public function testCanSetName()
+    {
         $route = new Route();
 
         $this->assertEquals('', $route->getName());
@@ -61,7 +64,8 @@ class RouteTest extends TestCase
         $this->assertEquals('name', $route->getName());
     }
 
-    public function testCanSetDomain(){
+    public function testCanSetDomain()
+    {
         $route = new Route();
 
         $this->assertEquals('', $route->getDomain());
@@ -71,7 +75,8 @@ class RouteTest extends TestCase
         $this->assertEquals('domain', $route->getDomain());
     }
 
-    public function testCanSetDomainRegex(){
+    public function testCanSetDomainRegex()
+    {
         $route = new Route();
 
         $this->assertEquals('(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})?', $route->getDomainRegex());
@@ -85,7 +90,8 @@ class RouteTest extends TestCase
         $this->assertEquals('(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})?', $route->getDomainRegex());
     }
 
-    public function testCanSetHandler(){
+    public function testCanSetHandler()
+    {
         $route = new Route();
 
         $this->assertEquals('', $route->getHandler());
@@ -95,7 +101,8 @@ class RouteTest extends TestCase
         $this->assertEquals('handler', $route->getHandler());
     }
 
-    public function testCanSetMethods(){
+    public function testCanSetMethods()
+    {
         $route = new Route();
 
         $this->assertEmpty($route->getMethods());
@@ -108,13 +115,15 @@ class RouteTest extends TestCase
     /**
      * @expectedException     InvalidArgumentException
      */
-    public function testCannotSetInvalidMethods(){
+    public function testCannotSetInvalidMethods()
+    {
         $route = new Route();
 
         $route->setMethods(['GET', 'OPTIONS', 'SOMETHING']);
     }
 
-    public function testCanSetValues(){
+    public function testCanSetValues()
+    {
         $route = new Route();
 
         $this->assertEquals([], $route->getValues());
@@ -124,7 +133,8 @@ class RouteTest extends TestCase
         $this->assertSame(['test' => ''], $route->getValues());
     }
 
-    public function testIsAllowedMethods(){
+    public function testIsAllowedMethods()
+    {
         $route = new Route();
         $route->setMethods(['GET', 'POST']);
 
@@ -137,7 +147,8 @@ class RouteTest extends TestCase
         $this->assertFalse($route->isAllowedMethod('DELETE'));
     }
 
-    public function testSetStateFromExport(){
+    public function testSetStateFromExport()
+    {
         $route = new Route();
         $route->setDomain('domain')
             ->setName('route')
@@ -154,7 +165,8 @@ class RouteTest extends TestCase
         $this->assertSame($route->getDomain(), $route2->getDomain());
     }
 
-    public function testMatchesMethod(){
+    public function testMatchesMethod()
+    {
         $route = new Route();
         $route->setPath('/path')
             ->setRegex('/path')
@@ -173,23 +185,25 @@ class RouteTest extends TestCase
         $this->assertTrue($route->matches('leemason.co.uk/path'));
     }
 
-    public function testMergeParams(){
+    public function testMergeParams()
+    {
         $route = new Route();
         $route->setPath('/path')
             ->setName('name');
 
-        $route->mergeParams([[
+        $route->mergeParams([
             'name' => 'first',
             'path' => 'firstpath',
             'domain' => 'domain.com'
-        ]]);
+        ]);
 
         $this->assertEquals('firstpath/path', $route->getPath());
         $this->assertEquals('first.name', $route->getName());
         $this->assertEquals('domain.com', $route->getDomain());
     }
 
-    public function testParseValues(){
+    public function testParseValues()
+    {
         $route = new Route();
         $route->setPath('path/{with}/{args?}');
 
@@ -213,4 +227,122 @@ class RouteTest extends TestCase
 
     }
 
+    public function testUrlGeneration()
+    {
+        $route = new Route();
+
+        $route->setPath('thepath');
+
+        $this->assertEquals('/thepath', $route->url());
+
+        $route->setDomain('domain.com');
+
+        $this->assertEquals('//domain.com/thepath', $route->url());
+    }
+
+    public function testUrlGenerationWithArguments()
+    {
+        $route = new Route();
+
+        $route->setPath('thepath/{arg:word}/{arg2}');
+
+        $this->assertEquals('/thepath/arg/arg2', $route->url(['arg' => 'arg', 'arg2' => 'arg2']));
+
+        $route->setDomain('domain.com');
+
+        $this->assertEquals('//domain.com/thepath/arg/arg2', $route->url(['arg' => 'arg', 'arg2' => 'arg2']));
+    }
+
+    /**
+     * @expectedException     InvalidArgumentException
+     */
+    public function testUrlGenerationWithArgumentsFails()
+    {
+        $route = new Route();
+
+        $route->setPath('thepath/{arg}/{arg2}');
+
+        $this->assertEquals('/thepath/arg/arg2', $route->url());
+    }
+
+    public function testUrlGenerationWithOptionalArguments()
+    {
+        $route = new Route();
+
+        $route->setPath('thepath/{arg}/{arg2?}');
+
+        $this->assertEquals('/thepath/arg', $route->url(['arg' => 'arg']));
+
+    }
+
+    public function testUrlGenerationWithOptionalArgumentsFilled()
+    {
+        $route = new Route();
+
+        $route->setPath('thepath/{arg}/{arg2?}');
+
+        $this->assertEquals('/thepath/arg/arg2', $route->url(['arg' => 'arg', 'arg2' => 'arg2']));
+
+    }
+
+    public function testUrlGenerationWithMultipleOptionalArguments()
+    {
+        $route = new Route();
+
+        $route->setPath('thepath/{arg?}/{arg2?}/{arg3?}');
+
+        $this->assertEquals('/thepath', $route->url());
+
+        $this->assertEquals('/thepath/arg', $route->url(['arg' => 'arg']));
+
+        $this->assertEquals('/thepath/arg/arg2', $route->url(['arg' => 'arg', 'arg2' => 'arg2']));
+
+        $this->assertEquals('/thepath/arg/arg2/arg3', $route->url(['arg' => 'arg', 'arg2' => 'arg2', 'arg3' => 'arg3']));
+
+    }
+
+    public function testUrlGenerationWithOptionalArgumentsAndDomain()
+    {
+        $route = new Route();
+
+        $route->setPath('thepath/{arg}/{arg2?}');
+
+        $route->setDomain('domain.com');
+
+        $this->assertEquals('//domain.com/thepath/arg', $route->url(['arg' => 'arg']));
+
+    }
+
+    public function testUrlGenerationWithOptionalArgumentsFilledAndDomain()
+    {
+        $route = new Route();
+
+        $route->setPath('thepath/{arg}/{arg2?}');
+
+        $route->setDomain('domain.com');
+
+        $this->assertEquals('//domain.com/thepath/arg/arg2', $route->url(['arg' =>'arg', 'arg2' => 'arg2']));
+    }
+
+    /**
+     * @expectedException     InvalidArgumentException
+     */
+    public function testUrlGenerationWithOptionalArgumentsFails(){
+        $route = new Route();
+
+        $route->setPath('thepath/{arg}/{arg2?}');
+
+        $this->assertEquals('/thepath/arg/arg2', $route->url());
+    }
+
+    /**
+     * @expectedException     InvalidArgumentException
+     */
+    public function testUrlGenerationWithWrongArgumentsFails(){
+        $route = new Route();
+
+        $route->setPath('thepath');
+
+        $this->assertEquals('/thepath', $route->url(['arg' =>'arg', 'arg2' => 'arg2']));
+    }
 }

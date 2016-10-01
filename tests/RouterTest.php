@@ -181,6 +181,30 @@ class RouterTest extends TestCase
         });
     }
 
+    public function testCanAddRouteToGroup(){
+        $router = new Router();
+
+        $this->assertSame([], $router->getRoutes());
+
+        $router->group(['name' => 'name', 'domain' => 'domain', 'path' => 'path'], function($r){
+
+            $r->get('path')->setName('route');
+
+            $r->group(['name' => 'name', 'path' => 'sub'], function($rSub){
+
+                $rSub->get('path')->setName('route');
+            });
+        });
+
+        $route = $router->getRoute('name.route');
+
+        $route2 = $router->getRoute('name.name.route');
+
+        $this->assertSame([$route, $route2], $router->getRoutes());
+
+        $this->assertEquals('path/sub/path', $route2->getPath());
+    }
+
     /**
      * @expectedException     \Ecfectus\Router\NotFoundException
      */
@@ -262,6 +286,16 @@ class RouterTest extends TestCase
         $this->assertSame($route, $result);
 
         $this->assertSame(['with' => 'with', 'args' => 'args'], $result->getValues());
+    }
+
+    public function testGetNamedRoute(){
+        $router = new Router();
+
+        $route = $router->get('path')->setName('test');
+
+        $result = $router->getRoute('test');
+
+        $this->assertSame($result, $route);
     }
 
 }

@@ -32,6 +32,14 @@ interface RouterInterface
     public function setRoutes(array $routes = []) : RouterInterface;
 
     /**
+     * Return a named Route.
+     *
+     * @param string $name
+     * @return RouteInterface
+     */
+    public function getRoute(string $name = '') : RouteInterface;
+
+    /**
      * Add a created route to the stack.
      *
      * @param RouteInterface $router

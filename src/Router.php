@@ -36,6 +36,11 @@ class Router implements RouterInterface
     /**
      * @var array
      */
+    protected $groupRoutes = [];
+
+    /**
+     * @var array
+     */
     protected $methodRoutes = [
         'OPTIONS' => [],
         'HEAD' => [],
@@ -94,10 +99,26 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
+    public function getRoute(string $name = '') : RouteInterface
+    {
+        foreach($this->routes as $route){
+            if($route->getName() == $name){
+                return $route;
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function addRoute(RouteInterface $route) : RouteInterface
     {
-        if(!empty($this->groupParams)){
-            $route->mergeParams($this->groupParams);
+        //if were in a group, lets add them to the stack but not to the routes array yet.
+        if(!empty($this->groupRoutes)){
+            $index = count($this->groupRoutes) - 1;
+            $this->groupRoutes[$index] = $this->groupRoutes[$index] ?? [];
+            $this->groupRoutes[$index][] = $route;
+            return $route;
         }
 
         $this->routes[] = $route;
@@ -190,9 +211,42 @@ class Router implements RouterInterface
     public function group(array $params, callable $callback) : RouterInterface
     {
         $this->addGroupParams($params);
+        $this->addGroupRoutesCollection();
         $callback($this);
+        $this->mergeGroupRoutes();
+        $this->popGroupRoutesCollection();
         $this->popGroupParams();
         return $this;
+    }
+
+    /**
+     * Merge routes from within groups up the chain until we add them to the main route stack.
+     */
+    private function mergeGroupRoutes()
+    {
+        //if its not the last group
+        if(count($this->groupRoutes) > 1){
+            $index = count($this->groupRoutes) - 1;
+            $this->groupRoutes[$index] = $this->groupRoutes[$index] ?? [];
+            foreach($this->groupRoutes[$index] as $route){
+                $route->mergeParams($this->groupParams[$index]);
+                $this->groupRoutes[$index - 1][] = $route;
+            }
+        }else{
+            $index = 0;
+            $this->groupRoutes[$index] = $this->groupRoutes[$index] ?? [];
+            foreach($this->groupRoutes[$index] as $route){
+                $route->mergeParams($this->groupParams[$index]);
+                $this->routes[] = $route;
+
+                end($this->routes);
+                $key = key($this->routes);
+
+                foreach($route->getMethods() as $method){
+                    $this->methodRoutes[$method][] = $key;
+                }
+            }
+        }
     }
 
     /**
@@ -206,12 +260,29 @@ class Router implements RouterInterface
     }
 
     /**
+     * Adds a route group array
+     */
+    private function addGroupRoutesCollection()
+    {
+        $this->groupRoutes[] = [];
+    }
+
+    /**
      * Remove the last group params from the stack.
      *
      */
     private function popGroupParams()
     {
         array_pop($this->groupParams);
+    }
+
+    /**
+     * Remove the last group routes from the stack.
+     *
+     */
+    private function popGroupRoutesCollection()
+    {
+        array_pop($this->groupRoutes);
     }
 
     /**

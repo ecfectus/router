@@ -3,6 +3,13 @@
 require __DIR__ . '/vendor/autoload.php';
 
 
+$string = 'thepath/{arg}/{arg2?}';
+
+$string = str_replace(['{arg}', '{arg2?}'], ['arg', 'arg2'], $string);
+
+die($string);
+
+
 $router = \Ecfectus\Router\CachedRouter::create('routes.php');
 
 if(!$router->isCached()){

@@ -69,6 +69,11 @@ class Route implements RouteInterface
     protected $values = [];
 
     /**
+     * @var array
+     */
+    protected $params = [];
+
+    /**
      * @inheritDoc
      */
     public static function __set_state(array $atts = []) : RouteInterface
@@ -264,12 +269,9 @@ class Route implements RouteInterface
      */
     public function mergeParams(array $params) : RouteInterface
     {
-        $params = array_reverse($params);
-        foreach($params as $p){
-            $this->mergePath($p['path'] ?? '');
-            $this->mergeName($p['name'] ?? '');
-            $this->mergeDomain($p['domain'] ?? '');
-        }
+        $this->mergePath($params['path'] ?? '');
+        $this->mergeName($params['name'] ?? '');
+        $this->mergeDomain($params['domain'] ?? '');
         return $this;
     }
 
@@ -351,5 +353,49 @@ class Route implements RouteInterface
     {
         return in_array($method, $this->getMethods());
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function url(array $args = []) : string
+    {
+        $url = $this->getDomain();
+
+        $url .= '/' . $this->getPath();
+
+        $matches = [];
+
+        preg_match_all("~{([^/]+)}~", $url, $matches);
+
+        if(!empty($args) && empty($matches[0]) && empty($matches[1])){
+            throw new \InvalidArgumentException('You cannot provide arguments to a route without them.');
+        }
+
+        $values = [];
+        $replacements = [];
+
+        foreach($matches[1] as $key => $value){
+            $arg = rtrim(explode(':', $value)[0], '?');
+            //if its not optional, validate input args
+            if(substr($value, -1) != '?'){
+                if(!isset($args[$arg])){
+                    throw new \InvalidArgumentException('You must provide all required arguments, [{' . $arg . '}] is missing.');
+                }
+            }
+            $values[] = $matches[0][$key];
+            $replacements[] = $args[$arg] ?? '';
+        }
+
+        $url = str_replace($values, $replacements, $url);
+
+        //make domain requests schemeless
+        if($this->getDomain() != ''){
+            $url = '//' . $url;
+        }
+
+        //rtrim removes multiple slashes if it needs to.
+        return rtrim($url, '/');
+    }
+
 
 }
