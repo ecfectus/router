@@ -14,7 +14,8 @@
         "php": ">=7.0.0"
     },
     "require-dev": {
-        "phpunit/phpunit" : "^5.5.0"
+        "phpunit/phpunit" : "^5.5.0",
+        "phpdocumentor/phpdocumentor": "2.*"
     },
     "autoload": {
         "psr-4": {
@@ -25,5 +26,9 @@
         "psr-4": {
             "Ecfectus\\Router\\Test\\": "tests"
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "docs": "vendor/bin/phpdoc"
     }
 }

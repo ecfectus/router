@@ -4,3 +4,4 @@ composer.lock
 routes.php
 clover.xml
 coverage
+docs

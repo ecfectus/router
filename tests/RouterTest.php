@@ -230,4 +230,38 @@ class RouterTest extends TestCase
         $this->assertSame($route, $result);
     }
 
+    public function testMatchesRouteWithArgs(){
+        $router = new Router();
+
+        $route = $router->get('path/{with}/{args}');
+
+        $router->compileRegex();
+
+        $result = $router->match('domain.com/path/with/args', 'GET');
+
+        $this->assertSame($route, $result);
+
+        $this->assertSame(['with' => 'with', 'args' => 'args'], $result->getValues());
+    }
+
+    public function testMatchesRouteWithOptionalArgs(){
+        $router = new Router();
+
+        $route = $router->get('path/{with}/{args?}');
+
+        $router->compileRegex();
+
+        $result = $router->match('domain.com/path/with', 'GET');
+
+        $this->assertSame($route, $result);
+
+        $this->assertSame(['with' => 'with', 'args' => ''], $result->getValues());
+
+        $result = $router->match('domain.com/path/with/args', 'GET');
+
+        $this->assertSame($route, $result);
+
+        $this->assertSame(['with' => 'with', 'args' => 'args'], $result->getValues());
+    }
+
 }
