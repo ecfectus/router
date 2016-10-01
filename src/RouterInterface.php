@@ -132,6 +132,11 @@ interface RouterInterface
     public function compileRegex();
 
     /**
+     * Prepare the router for matching urls.
+     */
+    public function prepare();
+
+    /**
      * Match a route against the provided path.
      *
      * @param string $path

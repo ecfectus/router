@@ -300,6 +300,11 @@ class Router implements RouterInterface
         }
     }
 
+    public function prepare()
+    {
+        $this->compileRegex();
+    }
+
     /**
      * @inheritDoc
      */

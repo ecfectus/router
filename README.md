@@ -104,10 +104,10 @@ $router->group([
     });
 
 /**
- * Compile Routes before matching
+ * Prepare Router before matching
  */
 try{
-    $router->compileRegex();
+    $router->prepare();
 }catch( Exception $e){
 
 }
@@ -142,8 +142,8 @@ if(!$router->isCached()){
     //add routes here
 
     try{
-        //compile and export the router to the file.
-        $router->compileRegex();
+        //prepare and export the router to the file.
+        $router->prepare();
         $router->export();
     }catch( Exception $e){
 
