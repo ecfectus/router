@@ -62,7 +62,7 @@ class Router implements RouterInterface
         $this->methodRoutes = $atts['methodRoutes'] ?? $this->methodRoutes;
     }
 
-    private function addRoute(RouteInterface $route) : RouteInterface
+    public function addRoute(RouteInterface $route) : RouteInterface
     {
         if(!empty($this->groupParams)){
             $route->mergeParams($this->groupParams);
