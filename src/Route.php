@@ -243,7 +243,7 @@ class Route implements RouteInterface
     /**
      * Set the routes values array to a keyed list of the arguments ready for population.
      */
-    private function parseValues()
+    protected function parseValues()
     {
 
         $this->setValues([]);

@@ -173,4 +173,44 @@ class RouteTest extends TestCase
         $this->assertTrue($route->matches('leemason.co.uk/path'));
     }
 
+    public function testMergeParams(){
+        $route = new Route();
+        $route->setPath('/path')
+            ->setName('name');
+
+        $route->mergeParams([[
+            'name' => 'first',
+            'path' => 'firstpath',
+            'domain' => 'domain.com'
+        ]]);
+
+        $this->assertEquals('firstpath/path', $route->getPath());
+        $this->assertEquals('first.name', $route->getName());
+        $this->assertEquals('domain.com', $route->getDomain());
+    }
+
+    public function testParseValues(){
+        $route = new Route();
+        $route->setPath('path/{with}/{args?}');
+
+        $this->assertSame([], $route->getValues());
+
+        $route->setRegex('path/(?<with>[^/]+)(?:/(?<args>[^/]+))?');
+
+        $this->assertSame([
+            'with' => '',
+            'args' => ''
+        ], $route->getValues());
+
+        $route->setDomainRegex('(?<subdomain>[^/]+).domain.com');
+
+        $this->assertSame([
+            'subdomain' => '',
+            'with' => '',
+            'args' => ''
+        ], $route->getValues());
+
+
+    }
+
 }
