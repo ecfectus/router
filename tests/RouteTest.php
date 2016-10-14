@@ -169,18 +169,14 @@ class RouteTest extends TestCase
     {
         $route = new Route();
         $route->setPath('/path')
-            ->setRegex('/path')
-            ->setDomain('');
+            ->setRegex('/path');
 
-        $this->assertTrue($route->matches('/path'));
-        $this->assertFalse($route->matches('/path2'));
+        $this->assertTrue($route->matches('localhost/path'));
         $this->assertTrue($route->matches('domain.com/path'));
 
         $route->setDomain('leemason.co.uk')
             ->setDomainRegex('leemason.co.uk');
 
-        $this->assertFalse($route->matches('/path'));
-        $this->assertFalse($route->matches('/path2'));
         $this->assertFalse($route->matches('domain.com/path'));
         $this->assertTrue($route->matches('leemason.co.uk/path'));
     }

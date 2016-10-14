@@ -278,6 +278,46 @@ class RouterTest extends TestCase
         $this->assertSame($route, $result);
     }
 
+    public function testMatchesRouteBase(){
+        $router = new Router();
+
+        $route = $router->get('/');
+
+        $router->prepare();
+
+        $result = $router->match('domain.com', 'GET');
+
+        $this->assertSame($route, $result);
+
+        $result = $router->match('localhost', 'GET');
+
+        $this->assertSame($route, $result);
+
+        $result = $router->match('domain.com/', 'GET');
+
+        $this->assertSame($route, $result);
+
+        $result = $router->match('localhost/', 'GET');
+
+        $this->assertSame($route, $result);
+    }
+
+    public function testMatchesRouteWithTrailingSlash(){
+        $router = new Router();
+
+        $route = $router->get('/path');
+
+        $router->prepare();
+
+        $result = $router->match('domain.com/path/', 'GET');
+
+        $this->assertSame($route, $result);
+
+        $result = $router->match('localhost/path/', 'GET');
+
+        $this->assertSame($route, $result);
+    }
+
     public function testMatchesRouteWithArgs(){
         $router = new Router();
 

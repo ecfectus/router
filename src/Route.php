@@ -331,7 +331,11 @@ class Route implements RouteInterface
     {
         $matches = [];
 
-        $passes = preg_match('~^' . $this->getDomainRegex() . '/' .$this->getRegex() . '$~', rtrim($path, '/'), $matches);
+        $path = $this->slashPath($path);
+
+        $regex = $this->getDomainRegex() . '/' . $this->getRegex();
+
+        $passes = preg_match('~^' . $this->slashPath($regex) . '$~', $path, $matches);
 
         foreach($matches as $k => $v) {
             if(!is_int($k)) {
