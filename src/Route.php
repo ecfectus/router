@@ -74,6 +74,11 @@ class Route implements RouteInterface
     protected $params = [];
 
     /**
+     * @var array
+     */
+    protected $middleware = [];
+
+    /**
      * @inheritDoc
      */
     public static function __set_state(array $atts = []) : RouteInterface
@@ -246,6 +251,23 @@ class Route implements RouteInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function setMiddleware(array $middleware) : RouteInterface
+    {
+        $this->middleware = $middleware;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getMiddleware() : array
+    {
+        return $this->middleware;
+    }
+
+    /**
      * Set the routes values array to a keyed list of the arguments ready for population.
      */
     protected function parseValues()
@@ -272,6 +294,7 @@ class Route implements RouteInterface
         $this->mergePath($params['path'] ?? '');
         $this->mergeName($params['name'] ?? '');
         $this->mergeDomain($params['domain'] ?? '');
+        $this->mergeMiddleware($params['middleware'] ?? []);
         return $this;
     }
 
@@ -310,6 +333,18 @@ class Route implements RouteInterface
         if($this->domain == '' && $domain != ''){
             $this->setDomain($domain);
         }
+        return $this;
+    }
+
+    /**
+     * If the group has middleware, merge with the route middleware, map through array values to reset keys.
+     *
+     * @param array $middleware
+     * @return RouteInterface
+     */
+    private function mergeMiddleware(array $middleware) : RouteInterface
+    {
+        $this->middleware = array_values(array_unique(array_merge(array_values($this->middleware), array_values($middleware))));
         return $this;
     }
 

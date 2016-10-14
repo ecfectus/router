@@ -105,6 +105,17 @@ interface RouteInterface
     public function getValues() : array;
 
     /**
+     * @param array $middleware
+     * @return RouteInterface
+     */
+    public function setMiddleware(array $middleware) : RouteInterface;
+
+    /**
+     * @return array
+     */
+    public function getMiddleware() : array;
+
+    /**
      * @param array $params
      * @return RouteInterface
      */

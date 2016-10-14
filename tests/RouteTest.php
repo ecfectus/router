@@ -112,6 +112,17 @@ class RouteTest extends TestCase
         $this->assertSame(['GET', 'OPTIONS'], $route->getMethods());
     }
 
+    public function testCanSetMiddleware()
+    {
+        $route = new Route();
+
+        $this->assertEmpty($route->getMiddleware());
+
+        $route->setMiddleware([1,2]);
+
+        $this->assertEquals([1,2], $route->getMiddleware());
+    }
+
     /**
      * @expectedException     InvalidArgumentException
      */
@@ -152,17 +163,20 @@ class RouteTest extends TestCase
         $route = new Route();
         $route->setDomain('domain')
             ->setName('route')
-            ->setPath('path');
+            ->setPath('path')
+            ->setMiddleware([1,2]);
 
         $route2 = Route::__set_state([
             'domain' => 'domain',
             'name' => 'route',
-            'path' => 'path'
+            'path' => 'path',
+            'middleware' => [1,2]
         ]);
 
         $this->assertSame($route->getPath(), $route2->getPath());
         $this->assertSame($route->getName(), $route2->getName());
         $this->assertSame($route->getDomain(), $route2->getDomain());
+        $this->assertEquals($route->getMiddleware(), $route2->getMiddleware());
     }
 
     public function testMatchesMethod()
@@ -185,17 +199,20 @@ class RouteTest extends TestCase
     {
         $route = new Route();
         $route->setPath('/path')
-            ->setName('name');
+            ->setName('name')
+            ->setMiddleware([1,2]);
 
         $route->mergeParams([
             'name' => 'first',
             'path' => 'firstpath',
-            'domain' => 'domain.com'
+            'domain' => 'domain.com',
+            'middleware' => [1,3,4]
         ]);
 
         $this->assertEquals('firstpath/path', $route->getPath());
         $this->assertEquals('first.name', $route->getName());
         $this->assertEquals('domain.com', $route->getDomain());
+        $this->assertEquals([1,2,3,4], $route->getMiddleware());
     }
 
     public function testParseValues()
