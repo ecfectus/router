@@ -61,7 +61,7 @@ class Route implements RouteInterface
     /**
      * @var string
      */
-    protected $domainRegex = '(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})?';
+    protected $domainRegex = '(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost)?';
 
     /**
      * @var array
@@ -210,7 +210,7 @@ class Route implements RouteInterface
     public function setDomainRegex(string $regex = '') : RouteInterface
     {
         if($regex == ''){
-            $regex = '(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})?';
+            $regex = '(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost)?';
         }
 
         $this->domainRegex = $regex;

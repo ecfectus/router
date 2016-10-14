@@ -79,7 +79,7 @@ class RouteTest extends TestCase
     {
         $route = new Route();
 
-        $this->assertEquals('(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})?', $route->getDomainRegex());
+        $this->assertEquals('(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost)?', $route->getDomainRegex());
 
         $route->setDomainRegex('domainregex');
 
@@ -87,7 +87,7 @@ class RouteTest extends TestCase
 
         $route->setDomainRegex('');
 
-        $this->assertEquals('(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6})?', $route->getDomainRegex());
+        $this->assertEquals('(?:([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost)?', $route->getDomainRegex());
     }
 
     public function testCanSetHandler()

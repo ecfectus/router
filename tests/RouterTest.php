@@ -254,6 +254,30 @@ class RouterTest extends TestCase
         $this->assertSame($route, $result);
     }
 
+    public function testMatchesRouteLocalhost(){
+        $router = new Router();
+
+        $route = $router->get('path')->setDomain('localhost');
+
+        $router->prepare();
+
+        $result = $router->match('localhost/path', 'GET');
+
+        $this->assertSame($route, $result);
+    }
+
+    public function testMatchesRouteLocalhostWithoutSetDomain(){
+        $router = new Router();
+
+        $route = $router->get('path');
+
+        $router->prepare();
+
+        $result = $router->match('localhost/path', 'GET');
+
+        $this->assertSame($route, $result);
+    }
+
     public function testMatchesRouteWithArgs(){
         $router = new Router();
 
