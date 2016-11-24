@@ -281,7 +281,7 @@ class Route implements RouteInterface
 
         if(!empty($matches[1])){
             foreach($matches[1] as $value){
-                $this->values[$value] = '';
+                $this->values[$value] = null;
             }
         }
     }

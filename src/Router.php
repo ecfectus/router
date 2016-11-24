@@ -69,6 +69,8 @@ class Router implements RouterInterface
      */
     protected $groupParams = [];
 
+    protected $prepared = false;
+
     /**
      * @param array $atts
      */
@@ -77,6 +79,7 @@ class Router implements RouterInterface
         $this->routes = $atts['routes'] ?? [];
         $this->patternMatchers = $atts['patternMatchers'] ?? $this->patternMatchers;
         $this->methodRoutes = $atts['methodRoutes'] ?? $this->methodRoutes;
+        $this->prepared = $atts['prepared'] ?? $this->prepared;
     }
 
     /**
@@ -113,6 +116,8 @@ class Router implements RouterInterface
      */
     public function addRoute(RouteInterface $route) : RouteInterface
     {
+        $this->prepared = false;
+
         //if were in a group, lets add them to the stack but not to the routes array yet.
         if(!empty($this->groupRoutes)){
             $index = count($this->groupRoutes) - 1;
@@ -302,7 +307,9 @@ class Router implements RouterInterface
 
     public function prepare()
     {
-        $this->compileRegex();
+        if($this->prepared === false) {
+            $this->compileRegex();
+        }
     }
 
     /**
@@ -310,6 +317,7 @@ class Router implements RouterInterface
      */
     public function match(string $path = '', string $method = 'GET') : RouteInterface
     {
+        $this->prepare();
 
         $method = strtoupper($method);
 

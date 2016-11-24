@@ -343,7 +343,7 @@ class RouterTest extends TestCase
 
         $this->assertSame($route, $result);
 
-        $this->assertSame(['with' => 'with', 'args' => ''], $result->getValues());
+        $this->assertSame(['with' => 'with', 'args' => null], $result->getValues());
 
         $result = $router->match('domain.com/path/with/args', 'GET');
 

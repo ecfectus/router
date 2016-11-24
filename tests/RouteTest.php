@@ -225,16 +225,16 @@ class RouteTest extends TestCase
         $route->setRegex('path/(?<with>[^/]+)(?:/(?<args>[^/]+))?');
 
         $this->assertSame([
-            'with' => '',
-            'args' => ''
+            'with' => null,
+            'args' => null
         ], $route->getValues());
 
         $route->setDomainRegex('(?<subdomain>[^/]+).domain.com');
 
         $this->assertSame([
-            'subdomain' => '',
-            'with' => '',
-            'args' => ''
+            'subdomain' => null,
+            'with' => null,
+            'args' => null
         ], $route->getValues());
 
 
